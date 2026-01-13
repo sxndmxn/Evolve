@@ -45,6 +45,7 @@
                 RetryRepeatableMigrationsUntilNoError = options.RetryRepeatableMigrationsUntilNoError,
                 TransactionMode = options.TransactionMode,
                 SkipNextMigrations = options.SkipNextMigrations,
+                ChecksumAlgorithm = options.ChecksumAlgorithm,
             };
 
             if (options.Placeholders != null)

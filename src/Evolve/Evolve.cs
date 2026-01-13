@@ -90,6 +90,8 @@ namespace EvolveDb
             set { _migrationLoader = value; }
         }
 
+        public HashAlgorithmType ChecksumAlgorithm { get; set; } = HashAlgorithmType.MD5;
+
         #endregion
 
         #region Properties

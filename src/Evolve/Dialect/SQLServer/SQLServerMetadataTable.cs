@@ -43,7 +43,7 @@ namespace EvolveDb.Dialect.SQLServer
                  "version VARCHAR(50), " +
                  "description VARCHAR(200) NOT NULL, " +
                  "name VARCHAR(300) NOT NULL, " +
-                 "checksum VARCHAR(32), " +
+                 "checksum VARCHAR(128), " +
                  "installed_by VARCHAR(100) NOT NULL, " +
                  "installed_on DATETIME NOT NULL DEFAULT GETDATE(), " +
                  "success BIT NOT NULL " +

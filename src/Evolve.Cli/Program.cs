@@ -129,6 +129,10 @@ class Program
     [Option("--skip-next-migrations", "When set, mark all subsequent migrations as applied. Default: false", CommandOptionType.SingleValue)]
     public bool SkipNextMigrations { get; }
 
+    [Option("--checksum-algorithm", "Hash algorithm for migration checksums. SHA-256, SHA-384, SHA-512 are FIPS-compliant. Default: MD5", CommandOptionType.SingleValue)]
+    [AllowedValues("MD5", "SHA256", "SHA384", "SHA512", IgnoreCase = true)]
+    public HashAlgorithmType ChecksumAlgorithm { get; } = Default.ChecksumAlgorithm;
+
     // Cassandra
     [Option("--keyspace", "A list of keyspaces managed by Evolve (Cassandra only).", CommandOptionType.MultipleValue)]
     public string[] Keyspaces { get; }

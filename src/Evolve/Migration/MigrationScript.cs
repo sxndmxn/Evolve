@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
+using EvolveDb.Configuration;
 using EvolveDb.Metadata;
 using EvolveDb.Utilities;
 
@@ -26,6 +26,11 @@ namespace EvolveDb.Migration
         public string Content { get; }
 
         /// <summary>
+        ///     Gets or sets the hash algorithm used for checksum calculation.
+        /// </summary>
+        internal HashAlgorithmType HashAlgorithm { get; set; } = HashAlgorithmType.MD5;
+
+        /// <summary>
         ///     Returns false if the special comment "evolve-tx-off" is found in the first line of the script, true otherwise.
         /// </summary>
         public virtual bool IsTransactionEnabled => !OptionExists("evolve-tx-off");
@@ -37,7 +42,7 @@ namespace EvolveDb.Migration
 
         /// <summary>
         ///     Validates the <paramref name="checksum"/> against the actual migration one.
-        ///     Throws on mismatch.
+        ///     Supports dual validation: accepts both the configured algorithm and MD5 for backward compatibility.
         /// </summary>
         /// <param name="checksum"> The applied migration checksum. </param>
         /// <exception cref="EvolveValidationException"></exception>
@@ -45,21 +50,56 @@ namespace EvolveDb.Migration
         {
             Check.NotNull(checksum, nameof(checksum));
 
-            if (checksum != CalculateChecksum())
+            string currentChecksum = CalculateChecksum();
+
+            // Direct match with configured algorithm
+            if (checksum == currentChecksum)
             {
-                throw new EvolveValidationException(string.Format(IncorrectMigrationChecksum, Name));
+                return;
             }
+
+            // Dual validation: try MD5 for backward compatibility if using SHA-2
+            if (HashAlgorithm != HashAlgorithmType.MD5)
+            {
+                string md5Checksum = CalculateChecksumWithAlgorithm(HashAlgorithmType.MD5);
+                if (checksum == md5Checksum)
+                {
+                    return;
+                }
+            }
+
+            // Detect stored algorithm and recalculate if different
+            var detectedAlgorithm = ChecksumCalculator.DetectAlgorithm(checksum);
+            if (detectedAlgorithm.HasValue && detectedAlgorithm.Value != HashAlgorithm)
+            {
+                string recalculated = CalculateChecksumWithAlgorithm(detectedAlgorithm.Value);
+                if (checksum == recalculated)
+                {
+                    return;
+                }
+            }
+
+            throw new EvolveValidationException(string.Format(IncorrectMigrationChecksum, Name));
         }
 
         /// <summary>
         ///     Returns the checksum where <code>crlf</code> and <code>lf</code> line endings have been previously normalized to <code>lf</code>.
         /// </summary>
-        /// <returns></returns>
+        /// <returns> The checksum calculated with the configured hash algorithm. </returns>
         public virtual string CalculateChecksum()
         {
-            using var md5 = MD5.Create();
-            byte[] checksum = md5.ComputeHash(Encoding.UTF8.GetBytes(NormalizeLineEndings(Content)));
-            return BitConverter.ToString(checksum).Replace("-", string.Empty);
+            return CalculateChecksumWithAlgorithm(HashAlgorithm);
+        }
+
+        /// <summary>
+        ///     Calculates checksum using a specific algorithm.
+        /// </summary>
+        /// <param name="algorithm"> The hash algorithm to use. </param>
+        /// <returns> The checksum calculated with the specified algorithm. </returns>
+        protected string CalculateChecksumWithAlgorithm(HashAlgorithmType algorithm)
+        {
+            string normalizedContent = NormalizeLineEndings(Content);
+            return ChecksumCalculator.Calculate(normalizedContent, algorithm);
         }
 
         /// <summary>

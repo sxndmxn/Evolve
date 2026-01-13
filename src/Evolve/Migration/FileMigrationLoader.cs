@@ -59,7 +59,11 @@ namespace EvolveDb.Migration
                              return new FileMigrationScript(path: f.FullName, version, description, MetadataType.Migration, encoding);
                          })
                          .ToList()
-                         .ForEach(x => migrations.Add(x));
+                         .ForEach(x =>
+                         {
+                             x.HashAlgorithm = _options.ChecksumAlgorithm;
+                             migrations.Add(x);
+                         });
             }
 
             return migrations.CheckForDuplicateVersion()
@@ -100,7 +104,11 @@ namespace EvolveDb.Migration
                              return new FileMigrationScript(f.FullName, version: null, description, MetadataType.RepeatableMigration, encoding);
                          })
                          .ToList()
-                         .ForEach(x => migrations.Add(x));
+                         .ForEach(x =>
+                         {
+                             x.HashAlgorithm = _options.ChecksumAlgorithm;
+                             migrations.Add(x);
+                         });
             }
 
             return migrations.CheckForDuplicateName()

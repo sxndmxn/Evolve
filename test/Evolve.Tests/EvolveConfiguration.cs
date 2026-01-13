@@ -41,6 +41,7 @@ namespace EvolveDb.Tests
         public bool RetryRepeatableMigrationsUntilNoError { get; set; }
         public TransactionKind TransactionMode { get; set; } = TransactionKind.CommitEach;
         public bool SkipNextMigrations { get; set; } = false;
+        public HashAlgorithmType ChecksumAlgorithm { get; set; } = HashAlgorithmType.MD5;
 
         private IMigrationLoader _migrationLoader;
         public IMigrationLoader MigrationLoader

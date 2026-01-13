@@ -58,7 +58,11 @@ namespace EvolveDb.Migration
                                 encoding);
                         })
                         .ToList()
-                        .ForEach(x => migrations.Add(x));
+                        .ForEach(x =>
+                        {
+                            x.HashAlgorithm = _options.ChecksumAlgorithm;
+                            migrations.Add(x);
+                        });
             }
 
             return migrations.CheckForDuplicateVersion()
@@ -100,7 +104,11 @@ namespace EvolveDb.Migration
                                 encoding);
                         })
                         .ToList()
-                        .ForEach(x => migrations.Add(x));
+                        .ForEach(x =>
+                        {
+                            x.HashAlgorithm = _options.ChecksumAlgorithm;
+                            migrations.Add(x);
+                        });
             }
 
             return migrations.CheckForDuplicateName()

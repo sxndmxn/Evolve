@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using EvolveDb.Configuration;
 using EvolveDb.Metadata;
 using EvolveDb.Migration;
+using EvolveDb.Utilities;
 using Xunit;
 using static EvolveDb.Tests.TestContext;
 using static EvolveDb.Tests.TestUtil;
@@ -114,6 +116,74 @@ namespace EvolveDb.Tests.Migration
             using FileStream stream = File.OpenRead(path);
             byte[] checksum = md5.ComputeHash(stream);
             return BitConverter.ToString(checksum).Replace("-", string.Empty);
+        }
+
+        [Fact]
+        [Category(Test.Migration)]
+        public void ValidateChecksum_accepts_MD5_when_configured_for_SHA256()
+        {
+            // Arrange
+            var script = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
+            string md5Checksum = script.CalculateChecksum(); // Default is MD5
+
+            // Switch to SHA-256
+            script.HashAlgorithm = HashAlgorithmType.SHA256;
+
+            // Act & Assert - should not throw due to dual validation
+            script.ValidateChecksum(md5Checksum);
+        }
+
+        [Fact]
+        [Category(Test.Migration)]
+        public void ValidateChecksum_accepts_SHA256_when_configured_for_SHA256()
+        {
+            // Arrange
+            var script = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
+            script.HashAlgorithm = HashAlgorithmType.SHA256;
+            string sha256Checksum = script.CalculateChecksum();
+
+            // Act & Assert - should not throw
+            script.ValidateChecksum(sha256Checksum);
+        }
+
+        [Fact]
+        [Category(Test.Migration)]
+        public void CalculateChecksum_returns_different_lengths_for_different_algorithms()
+        {
+            // Arrange
+            var script = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
+
+            // Act
+            script.HashAlgorithm = HashAlgorithmType.MD5;
+            string md5 = script.CalculateChecksum();
+
+            script.HashAlgorithm = HashAlgorithmType.SHA256;
+            string sha256 = script.CalculateChecksum();
+
+            script.HashAlgorithm = HashAlgorithmType.SHA512;
+            string sha512 = script.CalculateChecksum();
+
+            // Assert
+            Assert.Equal(32, md5.Length);
+            Assert.Equal(64, sha256.Length);
+            Assert.Equal(128, sha512.Length);
+        }
+
+        [Fact]
+        [Category(Test.Migration)]
+        public void ValidateChecksum_detects_algorithm_from_stored_checksum_length()
+        {
+            // Arrange - script configured for SHA-512
+            var script = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
+            script.HashAlgorithm = HashAlgorithmType.SHA512;
+
+            // Calculate SHA-256 checksum separately
+            var tempScript = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
+            tempScript.HashAlgorithm = HashAlgorithmType.SHA256;
+            string sha256Checksum = tempScript.CalculateChecksum();
+
+            // Act & Assert - should detect SHA-256 from length and validate
+            script.ValidateChecksum(sha256Checksum);
         }
     }
 }

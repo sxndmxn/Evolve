@@ -41,7 +41,7 @@ namespace EvolveDb.Dialect.SQLite
                  "version VARCHAR(50), " +
                  "description VARCHAR(200) NOT NULL, " +
                  "name VARCHAR(300) NOT NULL, " +
-                 "checksum VARCHAR(32), " +
+                 "checksum VARCHAR(128), " +
                  "installed_by VARCHAR(100) NOT NULL, " +
                  "installed_on TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f','now')), " +
                  "success BOOLEAN NOT NULL " +

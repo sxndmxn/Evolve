@@ -214,9 +214,23 @@ namespace EvolveDb.Configuration
         bool SkipNextMigrations { get; }
 
         /// <summary>
-        ///     A custom <see cref="IMigrationLoader"/> used to load all migrations (applied, pending, ignored...) 
+        ///     A custom <see cref="IMigrationLoader"/> used to load all migrations (applied, pending, ignored...)
         ///     that replaces the built-in ones (<see cref="FileMigrationLoader"/> <see cref="EmbeddedResourceMigrationLoader"/>)
         /// </summary>
         IMigrationLoader MigrationLoader { get; }
+
+        /// <summary>
+        ///     <para>
+        ///         Hash algorithm used for calculating migration checksums. (default: MD5)
+        ///     </para>
+        ///     <para>
+        ///         SHA-256, SHA-384, and SHA-512 are FIPS-compliant alternatives.
+        ///     </para>
+        ///     <para>
+        ///         Note: When validating checksums, Evolve will accept both the configured
+        ///         algorithm and MD5 for backward compatibility with existing databases.
+        ///     </para>
+        /// </summary>
+        HashAlgorithmType ChecksumAlgorithm { get; }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
+using EvolveDb.Configuration;
 using EvolveDb.Metadata;
 using EvolveDb.Utilities;
 
@@ -44,22 +44,32 @@ namespace EvolveDb.Migration
             }
             catch
             {
-                if (checksum != FallbackCheck())
+                // Try fallback methods for backward compatibility (pre v1.8.0 hashing of file stream)
+                if (checksum == FallbackCheck() ||
+                    checksum == FallbackCheckWithAlgorithm(HashAlgorithm))
                 {
-                    throw;
+                    return;
                 }
+                throw;
             }
         }
 
         /// <summary>
-        ///     Calculate the checksum with the pre v1.8.0 version.
+        ///     Calculate the checksum with the pre v1.8.0 version (reads file directly with MD5).
         /// </summary>
         private string FallbackCheck()
         {
-            using var md5 = MD5.Create();
+            return FallbackCheckWithAlgorithm(HashAlgorithmType.MD5);
+        }
+
+        /// <summary>
+        ///     Calculate the checksum with the pre v1.8.0 version using specified algorithm.
+        /// </summary>
+        /// <param name="algorithm"> The hash algorithm to use. </param>
+        private string FallbackCheckWithAlgorithm(HashAlgorithmType algorithm)
+        {
             using FileStream stream = File.OpenRead(Path);
-            byte[] checksum = md5.ComputeHash(stream);
-            return BitConverter.ToString(checksum).Replace("-", string.Empty);
+            return ChecksumCalculator.Calculate(stream, algorithm);
         }
     }
 }
