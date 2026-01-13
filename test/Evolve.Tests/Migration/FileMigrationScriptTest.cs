@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
-using EvolveDb.Configuration;
 using EvolveDb.Metadata;
 using EvolveDb.Migration;
 using EvolveDb.Utilities;
@@ -127,7 +126,7 @@ namespace EvolveDb.Tests.Migration
             string md5Checksum = script.CalculateChecksum(); // Default is MD5
 
             // Switch to SHA-256
-            script.HashAlgorithm = HashAlgorithmType.SHA256;
+            script.HashAlgorithm = HashAlgorithmName.SHA256;
 
             // Act & Assert - should not throw due to dual validation
             script.ValidateChecksum(md5Checksum);
@@ -139,7 +138,7 @@ namespace EvolveDb.Tests.Migration
         {
             // Arrange
             var script = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
-            script.HashAlgorithm = HashAlgorithmType.SHA256;
+            script.HashAlgorithm = HashAlgorithmName.SHA256;
             string sha256Checksum = script.CalculateChecksum();
 
             // Act & Assert - should not throw
@@ -154,13 +153,13 @@ namespace EvolveDb.Tests.Migration
             var script = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
 
             // Act
-            script.HashAlgorithm = HashAlgorithmType.MD5;
+            script.HashAlgorithm = HashAlgorithmName.MD5;
             string md5 = script.CalculateChecksum();
 
-            script.HashAlgorithm = HashAlgorithmType.SHA256;
+            script.HashAlgorithm = HashAlgorithmName.SHA256;
             string sha256 = script.CalculateChecksum();
 
-            script.HashAlgorithm = HashAlgorithmType.SHA512;
+            script.HashAlgorithm = HashAlgorithmName.SHA512;
             string sha512 = script.CalculateChecksum();
 
             // Assert
@@ -175,11 +174,11 @@ namespace EvolveDb.Tests.Migration
         {
             // Arrange - script configured for SHA-512
             var script = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
-            script.HashAlgorithm = HashAlgorithmType.SHA512;
+            script.HashAlgorithm = HashAlgorithmName.SHA512;
 
             // Calculate SHA-256 checksum separately
             var tempScript = BuildFileMigrationScript(CrLfScriptPath, "2.3.1");
-            tempScript.HashAlgorithm = HashAlgorithmType.SHA256;
+            tempScript.HashAlgorithm = HashAlgorithmName.SHA256;
             string sha256Checksum = tempScript.CalculateChecksum();
 
             // Act & Assert - should detect SHA-256 from length and validate

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using EvolveDb.Configuration;
 using EvolveDb.Migration;
@@ -41,7 +42,7 @@ namespace EvolveDb.Tests
         public bool RetryRepeatableMigrationsUntilNoError { get; set; }
         public TransactionKind TransactionMode { get; set; } = TransactionKind.CommitEach;
         public bool SkipNextMigrations { get; set; } = false;
-        public HashAlgorithmType ChecksumAlgorithm { get; set; } = HashAlgorithmType.MD5;
+        public HashAlgorithmName ChecksumAlgorithm { get; set; } = HashAlgorithmName.MD5;
 
         private IMigrationLoader _migrationLoader;
         public IMigrationLoader MigrationLoader

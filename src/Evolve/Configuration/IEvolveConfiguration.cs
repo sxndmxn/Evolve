@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using EvolveDb.Migration;
 
@@ -231,6 +232,6 @@ namespace EvolveDb.Configuration
         ///         algorithm and MD5 for backward compatibility with existing databases.
         ///     </para>
         /// </summary>
-        HashAlgorithmType ChecksumAlgorithm { get; }
+        HashAlgorithmName ChecksumAlgorithm { get; }
     }
 }

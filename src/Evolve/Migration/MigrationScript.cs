@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
-using EvolveDb.Configuration;
 using EvolveDb.Metadata;
 using EvolveDb.Utilities;
 
@@ -28,7 +28,7 @@ namespace EvolveDb.Migration
         /// <summary>
         ///     Gets or sets the hash algorithm used for checksum calculation.
         /// </summary>
-        internal HashAlgorithmType HashAlgorithm { get; set; } = HashAlgorithmType.MD5;
+        internal HashAlgorithmName HashAlgorithm { get; set; } = HashAlgorithmName.MD5;
 
         /// <summary>
         ///     Returns false if the special comment "evolve-tx-off" is found in the first line of the script, true otherwise.
@@ -59,9 +59,9 @@ namespace EvolveDb.Migration
             }
 
             // Dual validation: try MD5 for backward compatibility if using SHA-2
-            if (HashAlgorithm != HashAlgorithmType.MD5)
+            if (HashAlgorithm != HashAlgorithmName.MD5)
             {
-                string md5Checksum = CalculateChecksumWithAlgorithm(HashAlgorithmType.MD5);
+                string md5Checksum = CalculateChecksumWithAlgorithm(HashAlgorithmName.MD5);
                 if (checksum == md5Checksum)
                 {
                     return;
@@ -96,7 +96,7 @@ namespace EvolveDb.Migration
         /// </summary>
         /// <param name="algorithm"> The hash algorithm to use. </param>
         /// <returns> The checksum calculated with the specified algorithm. </returns>
-        protected string CalculateChecksumWithAlgorithm(HashAlgorithmType algorithm)
+        protected string CalculateChecksumWithAlgorithm(HashAlgorithmName algorithm)
         {
             string normalizedContent = NormalizeLineEndings(Content);
             return ChecksumCalculator.Calculate(normalizedContent, algorithm);

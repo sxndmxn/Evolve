@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Transactions;
@@ -90,7 +91,7 @@ namespace EvolveDb
             set { _migrationLoader = value; }
         }
 
-        public HashAlgorithmType ChecksumAlgorithm { get; set; } = HashAlgorithmType.MD5;
+        public HashAlgorithmName ChecksumAlgorithm { get; set; } = HashAlgorithmName.MD5;
 
         #endregion
 

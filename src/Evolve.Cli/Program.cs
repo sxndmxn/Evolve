@@ -6,6 +6,7 @@ using McMaster.Extensions.CommandLineUtils;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Cryptography;
 using AllowedValuesAttribute = McMaster.Extensions.CommandLineUtils.AllowedValuesAttribute;
 
 [Command(ResponseFileHandling = ResponseFileHandling.ParseArgsAsSpaceSeparated)]
@@ -131,7 +132,15 @@ class Program
 
     [Option("--checksum-algorithm", "Hash algorithm for migration checksums. SHA-256, SHA-384, SHA-512 are FIPS-compliant. Default: MD5", CommandOptionType.SingleValue)]
     [AllowedValues("MD5", "SHA256", "SHA384", "SHA512", IgnoreCase = true)]
-    public HashAlgorithmType ChecksumAlgorithm { get; } = Default.ChecksumAlgorithm;
+    public string ChecksumAlgorithmName { get; } = "MD5";
+
+    public HashAlgorithmName ChecksumAlgorithm => ChecksumAlgorithmName?.ToUpperInvariant() switch
+    {
+        "SHA256" => HashAlgorithmName.SHA256,
+        "SHA384" => HashAlgorithmName.SHA384,
+        "SHA512" => HashAlgorithmName.SHA512,
+        _ => HashAlgorithmName.MD5
+    };
 
     // Cassandra
     [Option("--keyspace", "A list of keyspaces managed by Evolve (Cassandra only).", CommandOptionType.MultipleValue)]

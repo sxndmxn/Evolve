@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
-using EvolveDb.Configuration;
 using EvolveDb.Metadata;
 using EvolveDb.Utilities;
 
@@ -59,14 +59,14 @@ namespace EvolveDb.Migration
         /// </summary>
         private string FallbackCheck()
         {
-            return FallbackCheckWithAlgorithm(HashAlgorithmType.MD5);
+            return FallbackCheckWithAlgorithm(HashAlgorithmName.MD5);
         }
 
         /// <summary>
         ///     Calculate the checksum with the pre v1.8.0 version using specified algorithm.
         /// </summary>
         /// <param name="algorithm"> The hash algorithm to use. </param>
-        private string FallbackCheckWithAlgorithm(HashAlgorithmType algorithm)
+        private string FallbackCheckWithAlgorithm(HashAlgorithmName algorithm)
         {
             using FileStream stream = File.OpenRead(Path);
             return ChecksumCalculator.Calculate(stream, algorithm);

@@ -1,8 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using EvolveDb.Configuration;
 
 namespace EvolveDb.Utilities
 {
@@ -12,39 +12,44 @@ namespace EvolveDb.Utilities
     internal static class ChecksumCalculator
     {
         /// <summary>
+        ///     Known algorithm lengths for detection.
+        /// </summary>
+        private static readonly Dictionary<int, HashAlgorithmName> LengthToAlgorithm = new()
+        {
+            { 32, HashAlgorithmName.MD5 },
+            { 64, HashAlgorithmName.SHA256 },
+            { 96, HashAlgorithmName.SHA384 },
+            { 128, HashAlgorithmName.SHA512 }
+        };
+
+        /// <summary>
         ///     Returns the expected hex string length for each algorithm.
         /// </summary>
-        /// <param name="algorithm"> The hash algorithm type. </param>
+        /// <param name="algorithm"> The hash algorithm name. </param>
         /// <returns> The hex string length (32 for MD5, 64 for SHA256, 96 for SHA384, 128 for SHA512). </returns>
-        public static int GetHashLength(HashAlgorithmType algorithm) => algorithm switch
+        public static int GetHashLength(HashAlgorithmName algorithm)
         {
-            HashAlgorithmType.MD5 => 32,
-            HashAlgorithmType.SHA256 => 64,
-            HashAlgorithmType.SHA384 => 96,
-            HashAlgorithmType.SHA512 => 128,
-            _ => throw new ArgumentOutOfRangeException(nameof(algorithm))
-        };
+            if (algorithm == HashAlgorithmName.MD5) return 32;
+            if (algorithm == HashAlgorithmName.SHA256) return 64;
+            if (algorithm == HashAlgorithmName.SHA384) return 96;
+            if (algorithm == HashAlgorithmName.SHA512) return 128;
+            // For unknown algorithms, compute a sample hash to determine length
+            return CryptographicOperations.HashData(algorithm, Array.Empty<byte>()).Length * 2;
+        }
 
         /// <summary>
         ///     Detects the hash algorithm based on checksum string length.
         /// </summary>
         /// <param name="checksum"> The checksum string to analyze. </param>
-        /// <returns> The detected algorithm type, or null if length doesn't match any known algorithm. </returns>
-        public static HashAlgorithmType? DetectAlgorithm(string? checksum)
+        /// <returns> The detected algorithm name, or null if length doesn't match any known algorithm. </returns>
+        public static HashAlgorithmName? DetectAlgorithm(string? checksum)
         {
             if (string.IsNullOrEmpty(checksum))
             {
                 return null;
             }
 
-            return checksum.Length switch
-            {
-                32 => HashAlgorithmType.MD5,
-                64 => HashAlgorithmType.SHA256,
-                96 => HashAlgorithmType.SHA384,
-                128 => HashAlgorithmType.SHA512,
-                _ => null
-            };
+            return LengthToAlgorithm.TryGetValue(checksum.Length, out var algorithm) ? algorithm : null;
         }
 
         /// <summary>
@@ -53,11 +58,11 @@ namespace EvolveDb.Utilities
         /// <param name="content"> The string content to hash. </param>
         /// <param name="algorithm"> The hash algorithm to use. </param>
         /// <returns> The uppercase hex string representation of the hash. </returns>
-        public static string Calculate(string content, HashAlgorithmType algorithm)
+        public static string Calculate(string content, HashAlgorithmName algorithm)
         {
-            using var hashAlgorithm = CreateHashAlgorithm(algorithm);
-            byte[] hash = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(content));
-            return BitConverter.ToString(hash).Replace("-", string.Empty);
+            byte[] data = Encoding.UTF8.GetBytes(content);
+            byte[] hash = CryptographicOperations.HashData(algorithm, data);
+            return Convert.ToHexString(hash);
         }
 
         /// <summary>
@@ -66,25 +71,10 @@ namespace EvolveDb.Utilities
         /// <param name="stream"> The stream to hash. </param>
         /// <param name="algorithm"> The hash algorithm to use. </param>
         /// <returns> The uppercase hex string representation of the hash. </returns>
-        public static string Calculate(Stream stream, HashAlgorithmType algorithm)
+        public static string Calculate(Stream stream, HashAlgorithmName algorithm)
         {
-            using var hashAlgorithm = CreateHashAlgorithm(algorithm);
-            byte[] hash = hashAlgorithm.ComputeHash(stream);
-            return BitConverter.ToString(hash).Replace("-", string.Empty);
+            byte[] hash = CryptographicOperations.HashData(algorithm, stream);
+            return Convert.ToHexString(hash);
         }
-
-        /// <summary>
-        ///     Creates a HashAlgorithm instance for the specified algorithm type.
-        /// </summary>
-        /// <param name="algorithm"> The hash algorithm type. </param>
-        /// <returns> A new HashAlgorithm instance. </returns>
-        private static HashAlgorithm CreateHashAlgorithm(HashAlgorithmType algorithm) => algorithm switch
-        {
-            HashAlgorithmType.MD5 => MD5.Create(),
-            HashAlgorithmType.SHA256 => SHA256.Create(),
-            HashAlgorithmType.SHA384 => SHA384.Create(),
-            HashAlgorithmType.SHA512 => SHA512.Create(),
-            _ => throw new ArgumentOutOfRangeException(nameof(algorithm))
-        };
     }
 }
