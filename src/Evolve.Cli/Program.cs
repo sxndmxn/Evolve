@@ -130,17 +130,12 @@ class Program
     [Option("--skip-next-migrations", "When set, mark all subsequent migrations as applied. Default: false", CommandOptionType.SingleValue)]
     public bool SkipNextMigrations { get; }
 
-    [Option("--checksum-algorithm", "Hash algorithm for migration checksums. SHA-256, SHA-384, SHA-512 are FIPS-compliant. Default: MD5", CommandOptionType.SingleValue)]
-    [AllowedValues("MD5", "SHA256", "SHA384", "SHA512", IgnoreCase = true)]
+    [Option("--checksum-algorithm", "Hash algorithm name (e.g., MD5, SHA256, SHA384, SHA512, SHA3-256). Must be supported by the system. Default: MD5", CommandOptionType.SingleValue)]
     public string ChecksumAlgorithmName { get; } = "MD5";
 
-    public HashAlgorithmName ChecksumAlgorithm => ChecksumAlgorithmName?.ToUpperInvariant() switch
-    {
-        "SHA256" => HashAlgorithmName.SHA256,
-        "SHA384" => HashAlgorithmName.SHA384,
-        "SHA512" => HashAlgorithmName.SHA512,
-        _ => HashAlgorithmName.MD5
-    };
+    public HashAlgorithmName ChecksumAlgorithm => string.IsNullOrWhiteSpace(ChecksumAlgorithmName)
+        ? HashAlgorithmName.MD5
+        : new HashAlgorithmName(ChecksumAlgorithmName);
 
     // Cassandra
     [Option("--keyspace", "A list of keyspaces managed by Evolve (Cassandra only).", CommandOptionType.MultipleValue)]
